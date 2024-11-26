@@ -20,6 +20,7 @@ ffmpeg -i mandel%d.jpg mandel.mpg
 | 5           | 16.106s                     |
 | 10          | 11.659s                     |
 | 20          | 10.239s                     |
+
 [Download the Excel File](./Runtime_Data.xlsx)
 
 ### Discussion of result:
