@@ -2,7 +2,7 @@
 Amos (Mohan) Li  
 CPE 2600-121  
 11/25/2024  
-Lab 10: Multiprocessing  
+Lab 11: Multiprocessing  
 
 ### Overview of My Implementation
 I modified the `mandel.c` file to add functionality for generating 50 slightly different images by slightly changing parameters through multiprocessing with assigned number of child process.
