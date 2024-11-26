@@ -1,5 +1,4 @@
 /// 
-// 
 // Amos(Mohan) Li
 // CPE 2600-121
 // 11/25/2024
@@ -41,11 +40,11 @@ int main( int argc, char *argv[] ) {
 	double xcenter = 0;
 	double ycenter = 0;
 	double xscale = 4;
-	double yscale = 0; // calc later
 	int    image_width = 1000;
 	int    image_height = 1000;
 	int    max = 1000;
-	int num_process = 1;	
+	int num_process = 1;
+	int total_frame = 50;
 
 	// For each command line argument given,
 	// override the appropriate configuration value.
@@ -92,21 +91,21 @@ int main( int argc, char *argv[] ) {
 	}
 
 
-	for (int process = 0; process < num_process; process++) {
+	for (int frame = 0; frame < total_frame; frame++) {
 		sem_wait(sem); // Decrease the semaphore count
 		pid_t pid = fork();
 		if (pid == 0) {
 			char outfile[256];
-			snprintf(outfile, sizeof(outfile), outfile_template, process);
+			snprintf(outfile, sizeof(outfile), outfile_template, frame);
 			//change the scale
-			xscale = xscale * (1 - 0.015 * process);
-			xcenter += 0.02 * process;
-			ycenter += -0.02 * process; 
+			double frame_xscale = xscale * (1 - 0.015 * frame);
+			double frame_xcenter = xcenter + 0.02 * frame;
+			double frame_ycenter = ycenter - 0.02 * frame; 
 			// Calculate y scale based on x scale (settable) and image sizes in X and Y (settable)
-			yscale = xscale / image_width * image_height;
+			double frame_yscale = frame_xscale / image_width * image_height;
 
 			// Display the configuration of the new image.
-			printf("mandel: x=%lf y=%lf xscale=%lf yscale=%1f max=%d outfile_template=%s\n",xcenter,ycenter,xscale,yscale,max,outfile_template);
+			printf("mandel: x=%lf y=%lf xscale=%lf yscale=%1f max=%d outfile_template=%s\n",frame_xcenter,frame_ycenter,frame_xscale,frame_yscale,max,outfile_template);
 
 			// Create a new raw image of the appropriate size.
 			imgRawImage* img = initRawImage(image_width,image_height);
@@ -115,7 +114,7 @@ int main( int argc, char *argv[] ) {
 			setImageCOLOR(img,0);
 
 			// Compute the Mandelbrot image
-			compute_image(img,xcenter-xscale/2,xcenter+xscale/2,ycenter-yscale/2,ycenter+yscale/2,max);
+			compute_image(img,frame_xcenter-frame_xscale/2,frame_xcenter+frame_xscale/2,frame_ycenter-frame_yscale/2,frame_ycenter+frame_yscale/2,max);
 
 			// Save the image in the stated file.
 			storeJpegImageFile(img,outfile);
@@ -131,10 +130,9 @@ int main( int argc, char *argv[] ) {
 		}	
 	}
 
-	// Parent process: wait for all child processes to complete
-	for (int process = 0; process < num_process; process++) {
+	// Parent frame: wait for all child framees to complete
+	for (int frame = 0; frame < total_frame; frame++) {
 		wait(NULL);
-		sem_post(sem); // Increment semaphore count after child finishes
 	}
 	sem_close(sem);
 	sem_unlink("/mandel_sem");
@@ -215,7 +213,7 @@ int iteration_to_color( int iters, int max ) {
 void show_help() {
 	printf("Use: mandel [options]\n");
 	printf("Where options are:\n");
-	printf("-n <number of processes>	Number of process to use. (default = 1)\n");
+	printf("-n <number of framees>	Number of frame to use. (default = 1)\n");
 	printf("-m <max>    The maximum number of iterations per point. (default=1000)\n");
 	printf("-x <coord>  X coordinate of image center point. (default=0)\n");
 	printf("-y <coord>  Y coordinate of image center point. (default=0)\n");
