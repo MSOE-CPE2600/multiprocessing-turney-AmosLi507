@@ -1,3 +1,9 @@
+///
+// Amos(Mohan) Li
+// CPE 2600-121
+// 11/25/2024
+// Lab 10-multi-proccessing
+
 #ifndef JPEGRW_H
 #define JPEGRW_H
 

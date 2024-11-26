@@ -1,11 +1,23 @@
 /// 
-//  mandel.c
-//  Based on example code found here:
-//  https://users.cs.fiu.edu/~cpoellab/teaching/cop4610_fall22/project3.html
+// 
+// Amos(Mohan) Li
+// CPE 2600-121
+// 11/25/2024
+// Lab 10-multi-proccessing
+// File: mandel.c
+// Modified by: Amos(Mohan) Li
+// Compile Command: make
+// Main change: add semaphore and multi-proccessing function to generate multiple
+// images at the same time to the directory images
+// 
+// Based on example code found here:
+// https://users.cs.fiu.edu/~cpoellab/teaching/cop4610_fall22/project3.html
 //
-//  Converted to use jpg instead of BMP and other minor changes
+// Converted to use jpg instead of BMP and other minor changes
 //  
 ///
+#include <semaphore.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -20,8 +32,7 @@ static void compute_image( imgRawImage *img, double xmin, double xmax,
 static void show_help();
 
 
-int main( int argc, char *argv[] )
-{
+int main( int argc, char *argv[] ) {
 	char c;
 
 	// These are the default configuration values used
@@ -39,7 +50,7 @@ int main( int argc, char *argv[] )
 	// For each command line argument given,
 	// override the appropriate configuration value.
 
-	while((c = getopt(argc,argv,"x:y:s:W:H:m:o:h:n"))!=-1) {
+	while((c = getopt(argc,argv,"x:y:s:W:H:m:o:h:n:"))!=-1) {
 		switch(c) 
 		{
 			case 'x':
@@ -73,14 +84,24 @@ int main( int argc, char *argv[] )
 		}
 	}
 
-	for (int process = 0; process < 50; process++) {
-	pid_t pid = fork();
+	// Add semaphore initialization at the top of your `main` function
+	sem_t *sem = sem_open("/mandel_sem", O_CREAT, 0644, num_process);
+	if (sem == SEM_FAILED) {
+    	perror("sem_open failed");
+    	exit(EXIT_FAILURE);
+	}
 
+
+	for (int process = 0; process < num_process; process++) {
+		sem_wait(sem); // Decrease the semaphore count
+		pid_t pid = fork();
 		if (pid == 0) {
 			char outfile[256];
 			snprintf(outfile, sizeof(outfile), outfile_template, process);
 			//change the scale
-			xscale *= 0.95;
+			xscale = xscale * (1 - 0.015 * process);
+			xcenter += 0.02 * process;
+			ycenter += -0.02 * process; 
 			// Calculate y scale based on x scale (settable) and image sizes in X and Y (settable)
 			yscale = xscale / image_width * image_height;
 
@@ -101,16 +122,22 @@ int main( int argc, char *argv[] )
 
 			// free the mallocs
 			freeRawImage(img);
+			sem_post(sem); // Release the semaphore before exiting
 			exit(0);
 		} else if (pid < 0) {
 			perror("fork failed");
+			sem_post(sem); // Release the semaphore before exiting
 			exit(1);
 		}	
 	}
+
 	// Parent process: wait for all child processes to complete
 	for (int process = 0; process < num_process; process++) {
 		wait(NULL);
+		sem_post(sem); // Increment semaphore count after child finishes
 	}
+	sem_close(sem);
+	sem_unlink("/mandel_sem");
 	return 0;
 }
 
@@ -122,8 +149,7 @@ Return the number of iterations at point x, y
 in the Mandelbrot space, up to a maximum of max.
 */
 
-int iterations_at_point( double x, double y, int max )
-{
+int iterations_at_point( double x, double y, int max ) {
 	double x0 = x;
 	double y0 = y;
 
@@ -148,8 +174,7 @@ Compute an entire Mandelbrot image, writing each point to the given bitmap.
 Scale the image to the range (xmin-xmax,ymin-ymax), limiting iterations to "max"
 */
 
-void compute_image(imgRawImage* img, double xmin, double xmax, double ymin, double ymax, int max )
-{
+void compute_image(imgRawImage* img, double xmin, double xmax, double ymin, double ymax, int max ) {
 	int i,j;
 
 	int width = img->width;
@@ -180,16 +205,14 @@ Convert a iteration number to a color.
 Here, we just scale to gray with a maximum of imax.
 Modify this function to make more interesting colors.
 */
-int iteration_to_color( int iters, int max )
-{
+int iteration_to_color( int iters, int max ) {
 	int color = 0xFFFFFF*iters/(double)max;
 	return color;
 }
 
 
 // Show help message
-void show_help()
-{
+void show_help() {
 	printf("Use: mandel [options]\n");
 	printf("Where options are:\n");
 	printf("-n <number of processes>	Number of process to use. (default = 1)\n");

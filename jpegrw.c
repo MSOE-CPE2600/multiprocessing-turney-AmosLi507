@@ -1,4 +1,8 @@
-/// 
+///
+// Amos(Mohan) Li
+// CPE 2600-121
+// 11/25/2024
+// Lab 10-multi-proccessing
 //  jpegrw.c
 //  Based on example code found here:
 //  https://www.tspi.at/2020/03/20/libjpegexample.html
