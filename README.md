@@ -54,9 +54,9 @@ void compute_image(imgRawImage* img, double xmin, double xmax, double ymin, doub
 ### Discussion of result:
 Using a single process to generate 50 images takes the longest time, while using multiple processes can significantly reduce it. However, using 10 or more processes takes a similar amount of time, approximately 10 seconds.
 
-###i. Which technique seemed to impact runtime more – multithreading or multiprocessing. Why do you think that is?
+### i. Which technique seemed to impact runtime more – multithreading or multiprocessing. Why do you think that is?
 Multiprocessing impacts runtime more than multithreading, because in multiprcessing, each process runs independently in its own memory space, allowing ultiple processes are scheduled across different CPU cores. In my case, runtime is superlong when number of process is 1 does not matter how many is number of threads.
 However, for multi-threading, each thread has the shared memory space, and actually overhead of managing thread might could reduce the performance gains. In my case, runtime for 20 processes, 20 threads is slower than runtime of 20 processes, 5 threads.
 
-###ii. Was there a “sweet spot” where optimal (minimal) runtime was achieved?
+### ii. Was there a “sweet spot” where optimal (minimal) runtime was achieved?
 Based on my data, it is the combination of 10 processes and 10 threads(12.835s). Which is when a balance between the number of processes and threads was reached.
