@@ -61,7 +61,7 @@ Using a single process to generate 50 images takes the longest time, while using
 ### Discussion of result:
 
 ### i. Which technique seemed to impact runtime more – multithreading or multiprocessing. Why do you think that is?
-Multiprocessing impacts runtime more than multithreading, because in multiprcessing, each process runs independently in its own memory space, allowing ultiple processes are scheduled across different CPU cores. In my case, runtime is superlong when number of process is 1 does not matter how many is number of threads.
+Multiprocessing impacts runtime more than multithreading, because in multiprcessing, each process runs independently in its own memory space, allowing ultiple processes are scheduled across different CPU cores. In my case, runtime for 20 threads, 1 process is longer than 20 process 1 thread for about 4 seconds.
 However, for multi-threading, each thread has the shared memory space, and actually overhead of managing thread might could reduce the performance gains. In my case, runtime for 20 processes, 20 threads is slower than runtime of 20 processes, 5 threads.
 
 ### ii. Was there a “sweet spot” where optimal (minimal) runtime was achieved?
